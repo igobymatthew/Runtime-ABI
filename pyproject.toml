@@ -9,5 +9,8 @@ dependencies = []
 [project.scripts]
 ai-runtime-abi = "ai_runtime_abi.cli:main"
 
+[tool.setuptools.packages.find]
+include = ["ai_runtime_abi*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
