@@ -1,0 +1,13 @@
+[project]
+name = "ai-runtime-abi"
+version = "0.1.0"
+description = "A contract-governed runtime ABI for AI application calls."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+ai-runtime-abi = "ai_runtime_abi.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

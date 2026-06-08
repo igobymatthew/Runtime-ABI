@@ -1,0 +1,26 @@
+tools:
+  - name: crm.read_ticket
+    description: Read a customer support ticket and immutable metadata.
+    read_scope: support.ticket:read
+    write_scope: none
+    idempotent: true
+    side_effects: read_only
+    required_approval: none
+    auth_scope: crm.ticket.read
+    rate_limit: 120/minute
+    rollback: none
+    secret_exposure_risk: medium
+    output_may_contain_untrusted_instructions: true
+  - name: policy.search_refunds
+    description: Search refund policy snippets by locale and product.
+    read_scope: policy.refunds:read
+    write_scope: none
+    idempotent: true
+    side_effects: read_only
+    required_approval: none
+    auth_scope: policy.read
+    rate_limit: 300/minute
+    rollback: none
+    secret_exposure_risk: low
+    output_may_contain_untrusted_instructions: false
+

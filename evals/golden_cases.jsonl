@@ -1,0 +1,2 @@
+{"id":"ticket_refund_001","task":"summarize_customer_complaint","input":{"ticket_id":"T-100","customer_message":"I was charged twice after cancelling. I want a refund today.","customer_tier":"pro","locale":"en-US"},"expected":{"category":"refund","urgency":"high"}}
+{"id":"ticket_outage_001","task":"summarize_customer_complaint","input":{"ticket_id":"T-101","customer_message":"The dashboard has been down for our team since this morning.","customer_tier":"enterprise","locale":"en-US"},"expected":{"category":"outage","urgency":"high"}}

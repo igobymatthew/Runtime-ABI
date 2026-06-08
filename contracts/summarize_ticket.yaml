@@ -1,0 +1,53 @@
+{
+  "task": "summarize_customer_complaint",
+  "version": "2.1.0",
+  "description": "Summarize a customer complaint into stable support-facing JSON.",
+  "input_schema": {
+    "type": "object",
+    "required": ["ticket_id", "customer_message"],
+    "properties": {
+      "ticket_id": {"type": "string"},
+      "customer_message": {"type": "string"},
+      "customer_tier": {"type": "string", "enum": ["free", "pro", "enterprise"]},
+      "locale": {"type": "string"}
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": ["summary", "category", "urgency", "evidence"],
+    "properties": {
+      "summary": {"type": "string"},
+      "category": {"type": "string", "enum": ["billing", "refund", "outage", "account", "abuse", "other"]},
+      "urgency": {"type": "string", "enum": ["low", "medium", "high"]},
+      "evidence": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": ["source_id", "quote"],
+          "properties": {
+            "source_id": {"type": "string"},
+            "quote": {"type": "string"}
+          }
+        }
+      }
+    }
+  },
+  "allowed_models": ["reasoning_medium", "local_private_fallback"],
+  "allowed_tools": ["crm.read_ticket", "policy.search_refunds"],
+  "side_effects": "read_only",
+  "evidence_required": true,
+  "max_cost_usd": 0.08,
+  "max_latency_ms": 7000,
+  "eval_suite": ["complaint_summary_regression_v2", "hallucination_check_v1", "pii_leak_check_v1"],
+  "fallback_policy": {
+    "on_schema_fail": "retry_same_model_once",
+    "on_quality_fail": "route_to_stronger_model",
+    "on_tool_error": "return_recoverable_error"
+  },
+  "trace_policy": {
+    "log_inputs": "redacted",
+    "log_tool_outputs": "hashed_with_excerpt",
+    "retain_days": 30
+  }
+}

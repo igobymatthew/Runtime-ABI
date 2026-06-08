@@ -1,0 +1,50 @@
+{
+  "task": "classify_resume",
+  "version": "0.1.0",
+  "description": "Classify a resume for routing without making hiring decisions.",
+  "input_schema": {
+    "type": "object",
+    "required": ["resume_text", "role_id"],
+    "properties": {
+      "resume_text": {"type": "string"},
+      "role_id": {"type": "string"}
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": ["routing_label", "rationale", "evidence"],
+    "properties": {
+      "routing_label": {"type": "string", "enum": ["engineering_review", "recruiter_review", "needs_more_info"]},
+      "rationale": {"type": "string"},
+      "evidence": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": ["source_id", "quote"],
+          "properties": {
+            "source_id": {"type": "string"},
+            "quote": {"type": "string"}
+          }
+        }
+      }
+    }
+  },
+  "allowed_models": ["strict_json_extractor", "high_risk_reasoner"],
+  "allowed_tools": [],
+  "side_effects": "read_only",
+  "evidence_required": true,
+  "max_cost_usd": 0.05,
+  "max_latency_ms": 5000,
+  "eval_suite": ["resume_routing_regression_v1", "pii_leak_check_v1"],
+  "fallback_policy": {
+    "on_schema_fail": "retry_same_model_once",
+    "on_quality_fail": "route_to_human_review",
+    "on_tool_error": "return_recoverable_error"
+  },
+  "trace_policy": {
+    "log_inputs": "redacted",
+    "log_tool_outputs": "none",
+    "retain_days": 14
+  }
+}
