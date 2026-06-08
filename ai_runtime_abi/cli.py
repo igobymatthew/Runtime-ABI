@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +13,15 @@ from ai_runtime_abi.prompt_compiler import compile_prompt
 from ai_runtime_abi.router import default_registry
 from ai_runtime_abi.runtime import ContractRuntime, EchoComplaintGateway
 from ai_runtime_abi.schema_validator import validate_input
+
+
+@dataclass(frozen=True)
+class RegressionResult:
+    case_id: str
+    passed: bool
+    failures: list[str]
+    output: dict[str, Any]
+    trace: dict[str, Any]
 
 
 def main() -> None:
@@ -32,19 +43,24 @@ def main() -> None:
     run_parser.add_argument("payload_json")
 
     args = parser.parse_args()
+    exit_code = 0
     if args.command == "validate":
         contract = TaskContract.from_file(args.contract)
         print(json.dumps({"ok": True, "task": contract.task, "version": contract.version}, indent=2))
     elif args.command == "inspect":
         print(json.dumps(inspect_contract(args.contract), indent=2))
     elif args.command == "run-demo":
-        print(json.dumps(run_demo(args.contract, args.cases), indent=2))
+        result = run_demo(args.contract, args.cases)
+        print(json.dumps(result, indent=2))
+        if not result["ok"]:
+            exit_code = 1
     elif args.command == "run":
         payload = json.loads(args.payload_json)
         contract = TaskContract.from_file(args.contract)
         runtime = ContractRuntime(EchoComplaintGateway())
         result = runtime.run(contract, payload)
         print(json.dumps(result.__dict__, indent=2))
+    sys.exit(exit_code)
 
 
 def inspect_contract(path: str) -> dict[str, Any]:
@@ -65,14 +81,38 @@ def inspect_contract(path: str) -> dict[str, Any]:
 def run_demo(contract_path: str, cases_path: str) -> dict[str, Any]:
     contract = TaskContract.from_file(contract_path)
     runtime = ContractRuntime(EchoComplaintGateway())
-    traces = []
+    results: list[RegressionResult] = []
     for case in _read_jsonl(Path(cases_path)):
         if case.get("task") != contract.task:
             continue
         validate_input(contract, case["input"])
         result = runtime.run(contract, case["input"])
-        traces.append(result.trace)
-    return {"ok": True, "traces": traces}
+        failures = _compare_expected(case.get("expected", {}), result.output)
+        results.append(
+            RegressionResult(
+                case_id=str(case["id"]),
+                passed=not failures,
+                failures=failures,
+                output=result.output,
+                trace=result.trace,
+            )
+        )
+    return {"ok": all(result.passed for result in results), "results": [asdict(result) for result in results]}
+
+
+def _compare_expected(expected: dict[str, Any], output: dict[str, Any]) -> list[str]:
+    failures: list[str] = []
+    serialized_output = json.dumps(output, sort_keys=True).lower()
+    for key, expected_value in expected.items():
+        if key == "must_not_contain":
+            for forbidden in expected_value:
+                if str(forbidden).lower() in serialized_output:
+                    failures.append(f"output must not contain {forbidden!r}")
+            continue
+        actual_value = output.get(key)
+        if actual_value != expected_value:
+            failures.append(f"expected {key}={expected_value!r}, got {actual_value!r}")
+    return failures
 
 
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:

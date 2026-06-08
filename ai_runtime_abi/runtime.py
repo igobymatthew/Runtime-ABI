@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -66,7 +67,7 @@ class PolicyRuntimeError(RuntimeError):
 
 class EchoComplaintGateway:
     def complete(self, prompt: str, payload: dict[str, Any], provider_model: str) -> dict[str, Any]:
-        message = payload.get("customer_message", payload.get("resume_text", ""))
+        message = _sanitize_demo_text(str(payload.get("customer_message", payload.get("resume_text", ""))))
         category = "other"
         urgency = "medium"
         lowered = message.lower()
@@ -84,3 +85,17 @@ class EchoComplaintGateway:
             "evidence": [{"source_id": payload.get("ticket_id", "input"), "quote": str(message)[:120]}],
         }
 
+
+def _sanitize_demo_text(text: str) -> str:
+    sanitized = text
+    redactions = {
+        "admin api key": "[redacted credential]",
+        "api key": "[redacted credential]",
+        "password": "[redacted credential]",
+        "secret": "[redacted credential]",
+        "social security": "[redacted pii]",
+        "ssn": "[redacted pii]",
+    }
+    for unsafe, replacement in redactions.items():
+        sanitized = re.sub(re.escape(unsafe), replacement, sanitized, flags=re.IGNORECASE)
+    return sanitized

@@ -1,0 +1,1 @@
+{"id":"ticket_category_mismatch_001","task":"summarize_customer_complaint","input":{"ticket_id":"T-MISMATCH","customer_message":"I was charged twice and need a refund.","customer_tier":"pro","locale":"en-US"},"expected":{"category":"billing","urgency":"medium"}}

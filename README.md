@@ -38,7 +38,7 @@ Context Registry ↔ Tool Registry ↔ Trace Store ↔ Regression Suite
 
 ```text
 contracts/
-  summarize_ticket.yaml
+  summarize_ticket.json
 runtime/
   router.py
   policy.py
@@ -56,9 +56,9 @@ evals/
 ## Quick Start
 
 ```bash
-python -m ai_runtime_abi.cli validate contracts/summarize_ticket.yaml
-python -m ai_runtime_abi.cli inspect contracts/summarize_ticket.yaml
-python -m ai_runtime_abi.cli run-demo contracts/summarize_ticket.yaml evals/golden_cases.jsonl
+python -m ai_runtime_abi.cli validate contracts/summarize_ticket.json
+python -m ai_runtime_abi.cli inspect contracts/summarize_ticket.json
+python -m ai_runtime_abi.cli run-demo contracts/summarize_ticket.json evals/golden_cases.jsonl
 ```
 
 ## Status
