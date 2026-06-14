@@ -1,6 +1,6 @@
-# AI Runtime ABI
+# Runtime ABI
 
-AI Runtime ABI is an experimental contract layer for AI calls.
+Runtime ABI is an experimental contract layer for AI calls.
 
 The premise is simple: application code should not call models directly. It
 should call versioned task contracts that declare schemas, tool permissions,
